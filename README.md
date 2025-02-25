@@ -32,19 +32,36 @@ cd checkpoints && \
 cd ..
 ```
 
-- YOLOv8
+- Pyhton OpenCV with GUI
 ```
-
-
-sudo apt install -y libgtk2.0-dev pkg-config
-sudo apt install -y qt6-wayland
 sudo pip uninstall opencv-python opencv-python-headless -y
 sudo pip uninstall opencv-python opencv-python
 pip install opencv-python --no-cache-dir
+```
+
+- Movenet Installation
+# Ref: https://github.com/lee-man/movenet-pytorch.git
+```
+pip install tensorflow
+pip install tensorflow-hub
+pip install tensorflow-docs
+pip install torch torchvision
+
+```
+
+- YOLOv8 Installation
+```
+sudo apt install -y libgtk2.0-dev pkg-config
+sudo apt install -y qt6-wayland
 
 pip install ultralytics opencv-python pillow torch torchvision torchaudio
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+```
 
-
-
+- Posenet on Pytorch
+```
+git clone https://github.com/michellelychan/posenet-pytorch.git
+cd posenet-pytorch/
+python3 get_test_images.py
+python3 image_demo.py --model 101 --image_dir ./images --output_dir ./output
 ```
