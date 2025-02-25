@@ -6,6 +6,7 @@
 # Change fan speed to prvent from huge noise during the Demo
 sudo chown $(whoami) /sys/class/hwmon/hwmon1/pwm1_enable
 sudo chown $(whoami) /sys/class/hwmon/hwmon1/pwm1
+echo "1" >  /sys/class/hwmon/hwmon1/pwm1_enable
 echo "30" > /sys/class/hwmon/hwmon1/pwm1
 
 cd /home/dvt/Desktop/NPL54_ES2/app/NPL54Capture/
