@@ -32,3 +32,19 @@ cd checkpoints && \
 cd ..
 ```
 
+- YOLOv8
+```
+
+
+sudo apt install -y libgtk2.0-dev pkg-config
+sudo apt install -y qt6-wayland
+sudo pip uninstall opencv-python opencv-python-headless -y
+sudo pip uninstall opencv-python opencv-python
+pip install opencv-python --no-cache-dir
+
+pip install ultralytics opencv-python pillow torch torchvision torchaudio
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+
+
+```

@@ -30,12 +30,12 @@ print(f"using device: {device}")
 from sam2.build_sam import build_sam2_video_predictor
 
 # Config a proper model size for demo purpose
-# sam2_checkpoint = "/home/dvt/Desktop/sam2/checkpoints/sam2.1_hiera_small.pt"
 sam2_checkpoint = "/home/dvt/Desktop/sam2/checkpoints/sam2.1_hiera_small.pt"
 model_cfg = "configs/sam2.1/sam2.1_hiera_s.yaml"
-
 predictor = build_sam2_video_predictor(model_cfg, sam2_checkpoint, device=device)
 
+
+# 
 def show_mask(mask, ax, obj_id=None, random_color=False):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
