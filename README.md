@@ -60,8 +60,14 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 - Posenet on Pytorch
 ```
+cd ~/Desktop
 git clone https://github.com/michellelychan/posenet-pytorch.git
 cd posenet-pytorch/
 python3 get_test_images.py
 python3 image_demo.py --model 101 --image_dir ./images --output_dir ./output
+```
+
+A quick example
+```
+python3 posenet_image_demo.py --model 101 --image_dir ./images --output_dir ./output
 ```
