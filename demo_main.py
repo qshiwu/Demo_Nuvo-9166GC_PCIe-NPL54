@@ -14,6 +14,7 @@ model = YOLO("yolov8n.pt")  # This will automatically download the model if not 
 
 # Queue to share frames between threads (size=1 ensures old frames are dropped)
 frame102_queue = queue.Queue(maxsize=1)
+frame103_queue = queue.Queue(maxsize=1)
 
 
 
@@ -118,7 +119,7 @@ def display_canvas():
     
     
 def display_frame102():
-    global frame102, running
+    global frame102, running, frame102_queue
     while running and cap102.isOpened():        
         ret102, frame102 = cap102.read()
         # if frame is read correctly ret is True
@@ -129,16 +130,33 @@ def display_frame102():
         # Add frame to queue (drop old frames if needed)
         if not frame102_queue.full():
             frame102_queue.put(frame102)
+      
+      
+def display_frame103():
+    global frame103, running, frame103_queue
+    while running and cap103.isOpened():        
+        ret103, frame103 = cap103.read()
+        # if frame is read correctly ret is True
+        if not ret103:            
+            print("Can't receive frame103 . Exiting ...")
+            break
         
+        # Add frame to queue (drop old frames if needed)
+        if not frame103_queue.full():
+            frame103_queue.put(frame102)
 
 
 
-# Create and Start  Threads
+# Create and Start Threads
 # thread_display_canvas = threading.Thread(target=display_canvas)
 # thread_display_canvas.start()
 
 thread_display_frame102 = threading.Thread(target=display_frame102)
 thread_display_frame102.start()
+
+thread_display_frame103 = threading.Thread(target=display_frame103)
+thread_display_frame103.start()
+
 
 # Display the Canvas
 while True:
@@ -151,7 +169,7 @@ while True:
     canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
     
     # frame 103
-    # canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
+    canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
     # canvas[monitor.height//2:monitor.height, monitor.width//2:monitor.width] = cv2.resize(annotated_frame103, (monitor.width//2, monitor.height//2))
 
     cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
@@ -170,7 +188,7 @@ while True:
 # Wait for Threads to Finish
 # thread_display_canvas.join()
 thread_display_frame102.join()
-
+thread_display_frame103.join()
 
 
 # When everything done, release the cap102 and cap103
