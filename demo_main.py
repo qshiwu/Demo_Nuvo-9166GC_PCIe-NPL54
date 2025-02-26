@@ -1,28 +1,60 @@
+# pip install screeninfo
+from screeninfo import get_monitors
+
 import numpy as np
-import cv2 as cv
+import cv2
 
-cap102 = cv.VideoCapture('/dev/video102')
-cap103 = cv.VideoCapture('/dev/video103')
+cap102 = cv2.VideoCapture('/dev/video102')
+cap103 = cv2.VideoCapture('/dev/video103')
 
-if not cap103.isOpened():
-    print("Cannot open camera")
+cv2.namedWindow("WIN", cv2.WND_PROP_FULLSCREEN)
+cv2.setWindowProperty("WIN", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+
+
+
+if not cap102.isOpened() or not cap103.isOpened():
+    print("Neither /dev/video102 nor /dev/video103 is not streaming")
     exit()
+else:
+    # Get the primary monitor's resolution    
+    monitor = get_monitors()[0]  # Assumes the first monitor is the primary one
+    print(f"Desktop resolution: {monitor.width}x{monitor.height}")
+    
+    # A full size canvas
+    canvas = np.zeros((monitor.height, monitor.width , 3), dtype=np.uint8)
+    canvas[:, :] = [255, 0, 0]
+        
+
+    
 while True:
+
+    
     # cap103ture frame-by-frame
-    ret, frame = cap103.read()
+    ret103, frame103 = cap103.read()
+    ret102, frame102 = cap102.read()
 
     # if frame is read correctly ret is True
-    if not ret:
-        print("Can't receive frame (stream end?). Exiting ...")
+    if not ret103:
+        print("Can't receive frame103 (stream end?). Exiting ...")
         break
+    
+    
     # Our operations on the frame come here
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    gray103 = cv2.cvtColor(frame103, cv2.COLOR_BGR2GRAY)
+    resizedGray103 = cv2.resize(gray103, (monitor.width//2, monitor.height//2))
     # Display the resulting frame
-    cv.imshow('frame', gray)
+    # cv2.imshow("WIN", resizedGray103)
+    # canvas[y:y+height, x:x+width]
+    canvas[540:1080, 0:960] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
+    canvas[540:1080, 960:1920] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
+    # canvas[0:1080, 0:1920] = cv2.resize(frame103,(20,20))
+    cv2.imshow("WIN", canvas)
+    
 
-
+    
     # Wait for key press: Q or ESC
-    key = cv.waitKey(1) & 0xFF    
+    key = cv2.waitKey(1) & 0xFF    
     if key in [27, ord('q'), ord('Q')]:
         break
 
@@ -33,4 +65,4 @@ while True:
 # When everything done, release the cap102 and cap103
 cap102.release()
 cap103.release()
-cv.destroyAllWindows()
+cv2.destroyAllWindows()
