@@ -1,6 +1,11 @@
 # pip install screeninfo
 from screeninfo import get_monitors
 
+from ultralytics import YOLO
+# Download YOLOv8n (nano version)
+model = YOLO("yolov8n.pt")  # This will automatically download the model if not found locally
+
+
 import numpy as np
 import cv2
 
@@ -29,29 +34,46 @@ else:
     
 while True:
 
-    
     # cap103ture frame-by-frame
     ret103, frame103 = cap103.read()
     ret102, frame102 = cap102.read()
 
     # if frame is read correctly ret is True
+    if not ret102:
+        print("Can't receive frame102 . Exiting ...")
+        break
+
     if not ret103:
-        print("Can't receive frame103 (stream end?). Exiting ...")
+        print("Can't receive frame103 . Exiting ...")
         break
     
+    # Run YOLOv8 on the frame103 (only person detection)
+    results103 = model(frame103, classes=[0])
+     # Show results
+    annotated_frame103 = results103[0].plot()
+
     
     # Our operations on the frame come here
     gray103 = cv2.cvtColor(frame103, cv2.COLOR_BGR2GRAY)
     resizedGray103 = cv2.resize(gray103, (monitor.width//2, monitor.height//2))
-    # Display the resulting frame
-    # cv2.imshow("WIN", resizedGray103)
-    # canvas[y:y+height, x:x+width]
+    
+    # Display the resulting frame    
+    #  frame102   | frame102 w/ AI
+    # —————————————————————————————
+    #  frame103   | frame103 w/ AI
+    
+    # frame 102
     canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
+    
+    # frame 103
     canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
-    # canvas[0:1080, 0:1920] = cv2.resize(frame103,(20,20))
-    cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 2)
-    cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 2)
-
+    canvas[monitor.height//2:monitor.height, monitor.width//2:monitor.width] = cv2.resize(annotated_frame103, (monitor.width//2, monitor.height//2))
+    
+    
+    # canvas[0:1080, 0:1920] = annotated_frame_103
+    
+    cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
+    cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 1)
     cv2.imshow("WIN", canvas)
     
 
@@ -60,6 +82,8 @@ while True:
     key = cv2.waitKey(1) & 0xFF    
     if key in [27, ord('q'), ord('Q')]:
         break
+
+
 
 
 
