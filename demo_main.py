@@ -9,7 +9,9 @@ from ultralytics import YOLO
 
 
 # Download YOLOv8n (nano version)
-model = YOLO("yolov8n.pt")  # This will automatically download the model if not found locally
+model102 = YOLO("yolov8n.pt")  # This will automatically download the model103 if not found locally
+model103 = YOLO("yolov8n.pt")  # This will automatically download the model103 if not found locally
+
 
 # Queue to share frames between threads (size=1 ensures old frames are dropped)
 frame102_queue = queue.Queue(maxsize=1)
@@ -99,22 +101,6 @@ else:
 
 # Flag to control thread execution
 running = True
-
-def display_canvas():    
-    global running         
-    while running:
-        # cv2.imshow("WIN", canvas)
-        print("x")
-        # Wait for key press: Q or ESC
-        # key = cv2.waitKey(1) & 0xFF    
-        # if key in [27, ord('q'), ord('Q')]:
-        #     running = False
-        #     break
-        # if keyboard.is_pressed('q'):
-        #     print("Key 'q' pressed, exiting thread...")
-        #     break
-        time.sleep(0.1)  # Avoid high CPU usage
-    
     
 def display_frame102():
     global frame102, running, frame102_queue
@@ -129,6 +115,18 @@ def display_frame102():
         if not frame102_queue.full():
             frame102_queue.put(frame102)
       
+    
+def display_annoted_frame102():
+    global running, frame102_queue, annotated_frame102
+    while running:     
+        if not frame102_queue.empty():            
+            frame = frame102_queue.get()            
+            # Run YOLOv8 on the frame102 (only person detection)
+            results102 = model102(frame102, classes=[0])
+            # Show results
+            annotated_frame102 = results102[0].plot()
+        time.sleep(0.006)
+    
       
 def display_frame103():
     global frame103, running, frame103_queue
@@ -150,7 +148,7 @@ def display_annoted_frame103():
         if not frame103_queue.empty():            
             frame = frame103_queue.get()            
             # Run YOLOv8 on the frame103 (only person detection)
-            results103 = model(frame103, classes=[0])
+            results103 = model103(frame103, classes=[0])
             # Show results
             annotated_frame103 = results103[0].plot()
         time.sleep(0.006)
@@ -162,6 +160,10 @@ def display_annoted_frame103():
 
 thread_display_frame102 = threading.Thread(target=display_frame102)
 thread_display_frame102.start()
+
+thread_display_annoted_frame102 = threading.Thread(target=display_annoted_frame102)
+thread_display_annoted_frame102.start()
+
 
 thread_display_frame103 = threading.Thread(target=display_frame103)
 thread_display_frame103.start()
@@ -179,6 +181,7 @@ while True:
     
     # frame 102
     canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
+    canvas[0:monitor.height//2, monitor.width//2:monitor.width] = cv2.resize(annotated_frame102, (monitor.width//2, monitor.height//2))
     
     # frame 103
     canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
@@ -200,6 +203,7 @@ while True:
 # thread_display_canvas.join()
 thread_display_frame102.join()
 thread_display_frame103.join()
+thread_display_annoted_frame102.join()
 thread_display_annoted_frame103.join()
 
 
