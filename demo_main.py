@@ -46,9 +46,12 @@ while True:
     # Display the resulting frame
     # cv2.imshow("WIN", resizedGray103)
     # canvas[y:y+height, x:x+width]
-    canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
-    canvas[monitor.height//2:monitor.height, monitor.width//2:monitor.width] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
+    canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
+    canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
     # canvas[0:1080, 0:1920] = cv2.resize(frame103,(20,20))
+    cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 2)
+    cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 2)
+
     cv2.imshow("WIN", canvas)
     
 
