@@ -19,6 +19,8 @@ pip install notebook
 ```
 
 - SAM2 installation
+The SAM2 checkpoints files are too large, which will not be backuped in this Repo
+
 ```
 # Install SAM2
 git clone https://github.com/facebookresearch/sam2.git && cd sam2
