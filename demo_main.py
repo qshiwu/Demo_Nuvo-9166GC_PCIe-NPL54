@@ -172,12 +172,13 @@ thread_display_annoted_frame103 = threading.Thread(target=display_annoted_frame1
 thread_display_annoted_frame103.start()
 
 
-# Display the Canvas
+# Display the resulting frame    
+#  frame102   | frame102 w/ AI
+# —————————————————————————————
+#  frame103   | frame103 w/ AI    
+# Display every video stream on canvas and listen to keyboard event
+
 while True:
-    # Display the resulting frame    
-    #  frame102   | frame102 w/ AI
-    # —————————————————————————————
-    #  frame103   | frame103 w/ AI
     
     # frame 102
     canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
@@ -205,7 +206,6 @@ thread_display_frame102.join()
 thread_display_frame103.join()
 thread_display_annoted_frame102.join()
 thread_display_annoted_frame103.join()
-
 
 # When everything done, release the cap102 and cap103
 cap102.release()
