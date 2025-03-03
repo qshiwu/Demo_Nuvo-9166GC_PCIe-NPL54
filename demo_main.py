@@ -54,17 +54,21 @@ model103 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download
 
 ### Begin of MobileSAM ###
 from mobile_sam import sam_model_registry, SamPredictor
+
 current_user = os.getenv("USER")
 sam_checkpoint = f"/home/{current_user}/Desktop/MobileSAM/weights/mobile_sam.pt"
 
 model_type = "vit_t"
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
+print("device:", device)
 
 sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
 sam.to(device=device)
 sam.eval()
 
 predictor = SamPredictor(sam)
+
 ### End of MobileSAM ###
 
 # Queue to share frames between threads (size=1 ensures old frames are dropped)
@@ -115,6 +119,10 @@ def display_frame102():
       
     
 def display_annoted_frame102():
+
+    print("--------------")
+    print(cv2.cuda.getCudaEnabledDeviceCount())
+    print("--------------")
     global running, frame102_queue, annotated_frame102
     while running:     
         if not frame102_queue.empty():            
@@ -125,9 +133,9 @@ def display_annoted_frame102():
             
             # for sam2 _ sam2 is too huge for real time processing
             # switching to mobile sam
-            resized_frame = cv2.resize(frame, (0, 0), fx=0.1, fy=0.1)
-            # predictor.set_image(resized_frame)      
-            
+            ratio = 0.3
+            resized_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
+            predictor.set_image(resized_frame)
                                          
             for result in results102:
                 for box in result.boxes:
@@ -142,8 +150,9 @@ def display_annoted_frame102():
                 
             # Show results
             annotated_frame102 = resized_frame
+            # annotated_frame102 = results102
             
-        time.sleep(0.010)
+        time.sleep(0.03)
     
       
 def display_frame103():

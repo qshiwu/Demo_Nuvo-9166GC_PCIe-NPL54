@@ -80,3 +80,60 @@ https://github.com/ChaoningZhang/MobileSAM
 git clone https://github.com/ChaoningZhang/MobileSAM.git
 cd MobileSAM
 pip install gradio
+
+
+## Build OpenCV with CUDA and GUI support
+
+# Install CUDA and CUDNN
+
+Ref: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/#network-repo-installation-for-ubuntu
+
+```
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+
+sudo apt-get update
+sudo apt-get install cuda-toolkit
+sudo apt-get -y install cudnn9-cuda-12
+```
+
+```
+
+## Make sure the headless openCV is uninstalled
+pip show opencv-python
+pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python
+
+
+cd ~/Desktop
+git clone https://github.com/opencv/opencv.git
+git clone https://github.com/opencv/opencv_contrib.git
+
+
+cd opencv
+mkdir build
+cd build
+
+export CC=/usr/bin/gcc-10; export CXX=/usr/bin/g++-10
+
+cmake \
+-D CMAKE_BUILD_TYPE=RELEASE \
+-D CMAKE_INSTALL_PREFIX=/usr/local \
+-D WITH_CUDA=ON \
+-D WITH_CUDNN=ON \
+-D WITH_CUBLAS=ON \
+-D WITH_TBB=ON \
+-D OPENCV_DNN_CUDA=ON \
+-D OPENCV_ENABLE_NONFREE=ON \
+-D BUILD_OPENCV_WORLD=OFF \
+-D CUDA_ARCH_BIN=8.0 \
+-D OPENCV_EXTRA_MODULES_PATH=/home/dvt/Desktop/opencv_contrib/modules/ /home/dvt/Desktop/opencv/ \
+-D BUILD_EXAMPLES=OFF \
+-D HAVE_opencv_python3=ON \
+..
+
+
+make -j8
+sudo make install
+
+```
+
