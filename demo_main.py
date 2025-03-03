@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", message="Overwriting tiny_vit_5m_224 in registry")
+
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 import sys
@@ -120,39 +123,69 @@ def display_frame102():
     
 def display_annoted_frame102():
 
-    print("--------------")
-    print(cv2.cuda.getCudaEnabledDeviceCount())
-    print("--------------")
+   # print("--------------")
+   # print(cv2.cuda.getCudaEnabledDeviceCount())
+   # print("--------------")
+
     global running, frame102_queue, annotated_frame102
     while running:     
         if not frame102_queue.empty():            
             frame = frame102_queue.get() 
             
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame, conf=0.55, classes=[0])
+            results102 = model102(frame, conf=0.55, classes=[0], verbose=False)
             
             # for sam2 _ sam2 is too huge for real time processing
             # switching to mobile sam
-            ratio = 0.3
-            resized_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
-            predictor.set_image(resized_frame)
+            # ratio = 0.3
+            # resized_frame = cv2.cuda.resize(frame, (0, 0), fx=ratio, fy=ratio)
+            # predictor.set_image(resized_frame)
+            predictor.set_image(frame)
+            blended = frame
                                          
             for result in results102:
-                for box in result.boxes:
-                    # testing with sam2
-                    
-                    
+                for box_yolo in result.boxes:                    
+                                        
                     # print(box)
-                    x_min, y_min, x_max, y_max = box.xyxy[0]  # Bounding box in (x_min, y_min, x_max, y_max) format
-                    conf = box.conf[0].item()  # Confidence score                    
-                    print(f"Confidence: {conf:.2f}, BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
+                    x_min, y_min, x_max, y_max = box_yolo.xyxy[0]  # Bounding box in (x_min, y_min, x_max, y_max) format
+                    # print(f"BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
+                    
+                    input_box = np.array([x_min.cpu().item(), y_min.cpu().item(), x_max.cpu().item(), y_max.cpu().item()])
+                    
+                    masks, _, _ = predictor.predict(
+                        point_coords=None,
+                        point_labels=None,
+                        box=input_box[None, :],
+                        multimask_output=False,
+                    )
+
+
+                    mask = masks[0]
+                    # Convert mask to uint8 (0 or 255) if it's a binary mask
+                    mask = (mask > 0.5).astype(np.uint8) * 255  # Threshold if necessary
+
+                    # Ensure the mask and frame have the same size
+                    mask_resized = cv2.resize(mask, (frame.shape[1], frame.shape[0]))
+
+                    # Convert the mask to 3 channels for blending (if it's single channel)
+                    mask_colored = cv2.cvtColor(mask_resized, cv2.COLOR_GRAY2BGR)
+
+                    alpha = 1
+                    beta = 0.5
+                    blended = cv2.addWeighted(blended, alpha , mask_colored, beta , 0)
+
+
+                    #color = np.array([30/255, 144/255, 255/255, 0.6])
+                    #h, w = masks[0].shape[-2:]
+                    #mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
+
                 
                 
             # Show results
-            annotated_frame102 = resized_frame
+            annotated_frame102 = blended
             # annotated_frame102 = results102
             
-        time.sleep(0.03)
+        time.sleep(0.05)
     
       
 def display_frame103():
@@ -175,7 +208,7 @@ def display_annoted_frame103():
         if not frame103_queue.empty():            
             frame = frame103_queue.get()            
             # Run YOLOv8 on the frame103 (only person detection)
-            results103 = model103(frame, conf=0.55, classes=[0])
+            results103 = model103(frame, conf=0.55, classes=[0], verbose=False)
             # Show results
             annotated_frame103 = results103[0].plot()
         time.sleep(0.010)
