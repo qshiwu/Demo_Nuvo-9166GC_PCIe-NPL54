@@ -110,12 +110,12 @@ class StateMachine:
             self.transitions[self.state]()  # Call the corresponding state handler
 
 
-# # Create an instance of the StateMachine class
-# sm = StateMachine()
-# # Run the state machine
-# sm.run()
-# ##
-# printf("!")
+# Create an instance of the StateMachine class
+sm = StateMachine()
+# Run the state machine
+sm.run()
+##
+printf("!")
 
 
 
@@ -131,7 +131,7 @@ if device.type == "cuda":
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
-sam2_checkpoint = "/home/dvt/Desktop/sam2/checkpoints/sam2.1_hiera_large.pt"
+sam2_checkpoint = "../checkpoints/sam2.1_hiera_small.pt"
 model_cfg = "configs/sam2.1/sam2.1_hiera_s.yaml"
 predictor = build_sam2_video_predictor(model_cfg, sam2_checkpoint, device=device)
 
