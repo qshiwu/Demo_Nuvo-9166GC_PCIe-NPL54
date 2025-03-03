@@ -1,55 +1,16 @@
-import os
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-import torch
 import numpy as np
 import cv2
 import threading
 import time
 import queue
-from utility import *
+# pip install screeninfo
 from screeninfo import get_monitors
 from ultralytics import YOLO
 
-### Initialize YOLOv8n ###
 
 # Download YOLOv8n (nano version)
 model102 = YOLO("yolov8n.pt")  # This will automatically download the model103 if not found locally
 model103 = YOLO("yolov8n.pt")  # This will automatically download the model103 if not found locally
-
-
-### Initialize sam2 ###
-
-from sam2.build_sam import build_sam2
-from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-current_user = os.getenv("USER")
-sam2_checkpoint = f"/home/{current_user}/Desktop/sam2/checkpoints/sam2.1_hiera_large.pt"
-model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
-
-
-
-
-
-###########
-
-# select the device for computation
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-else:
-    device = torch.device("cpu")
-print(f"using device: {device}")
-
-if device.type == "cuda":
-    # use bfloat16 for the entire notebook
-    torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
-    # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
-    if torch.cuda.get_device_properties(0).major >= 8:
-        torch.backends.cuda.matmul.allow_tf32 = True
-        torch.backends.cudnn.allow_tf32 = True
-
-sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=device)
-predictor = SAM2ImagePredictor(sam2_model)
-
 
 
 # Queue to share frames between threads (size=1 ensures old frames are dropped)
@@ -79,7 +40,63 @@ else:
     
     # A full size canvas
     canvas = np.zeros((monitor.height, monitor.width , 3), dtype=np.uint8)
-    canvas[:, :] = [255, 0, 0]    
+    canvas[:, :] = [255, 0, 0]
+        
+
+    
+# while True:
+
+#     # cap103ture frame-by-frame
+#     ret103, frame103 = cap103.read()
+#     ret102, frame102 = cap102.read()
+
+#     # if frame is read correctly ret is True
+#     if not ret102:
+#         print("Can't receive frame102 . Exiting ...")
+#         break
+
+#     if not ret103:
+#         print("Can't receive frame103 . Exiting ...")
+#         break
+    
+#     # Run YOLOv8 on the frame103 (only person detection)
+#     results103 = model(frame103, classes=[0])
+#      # Show results
+#     annotated_frame103 = results103[0].plot()
+
+    
+#     # Our operations on the frame come here
+#     gray103 = cv2.cvtColor(frame103, cv2.COLOR_BGR2GRAY)
+#     resizedGray103 = cv2.resize(gray103, (monitor.width//2, monitor.height//2))
+    
+#     # Display the resulting frame    
+#     #  frame102   | frame102 w/ AI
+#     # —————————————————————————————
+#     #  frame103   | frame103 w/ AI
+    
+#     # frame 102
+#     canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
+    
+#     # frame 103
+#     canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
+#     canvas[monitor.height//2:monitor.height, monitor.width//2:monitor.width] = cv2.resize(annotated_frame103, (monitor.width//2, monitor.height//2))
+    
+    
+#     # canvas[0:1080, 0:1920] = annotated_frame_103
+    
+#     cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
+#     cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 1)
+#     cv2.imshow("WIN", canvas)
+    
+
+    
+#     # Wait for key press: Q or ESC
+#     key = cv2.waitKey(1) & 0xFF    
+#     if key in [27, ord('q'), ord('Q')]:
+#         break
+
+
+
 
 
 # Flag to control thread execution
@@ -105,7 +122,7 @@ def display_annoted_frame102():
         if not frame102_queue.empty():            
             frame = frame102_queue.get()            
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame102, conf=0.55, classes=[0])
+            results102 = model102(frame102, classes=[0])
             # Show results
             annotated_frame102 = results102[0].plot()
         time.sleep(0.006)
@@ -131,7 +148,7 @@ def display_annoted_frame103():
         if not frame103_queue.empty():            
             frame = frame103_queue.get()            
             # Run YOLOv8 on the frame103 (only person detection)
-            results103 = model103(frame103, conf=0.55, classes=[0])
+            results103 = model103(frame103, classes=[0])
             # Show results
             annotated_frame103 = results103[0].plot()
         time.sleep(0.006)
