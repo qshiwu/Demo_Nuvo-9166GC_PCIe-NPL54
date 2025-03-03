@@ -133,7 +133,7 @@ def display_annoted_frame102():
             frame = frame102_queue.get() 
             
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame, conf=0.55, classes=[0], verbose=False)
+            results102 = model102(frame, conf=0.40, classes=[0], verbose=False)
             
             # for sam2 _ sam2 is too huge for real time processing
             # switching to mobile sam
@@ -185,7 +185,7 @@ def display_annoted_frame102():
             annotated_frame102 = blended
             # annotated_frame102 = results102
             
-        time.sleep(0.05)
+        time.sleep(0.010)
     
       
 def display_frame103():
@@ -208,7 +208,7 @@ def display_annoted_frame103():
         if not frame103_queue.empty():            
             frame = frame103_queue.get()            
             # Run YOLOv8 on the frame103 (only person detection)
-            results103 = model103(frame, conf=0.55, classes=[0], verbose=False)
+            results103 = model103(frame, conf=0.45, classes=[0], verbose=False)
             # Show results
             annotated_frame103 = results103[0].plot()
         time.sleep(0.010)
