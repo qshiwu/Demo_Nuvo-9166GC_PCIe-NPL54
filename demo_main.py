@@ -1,11 +1,14 @@
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+import sys
 import torch
 import numpy as np
 import cv2
 import threading
 import time
 import queue
+import torch
+
 from utility import *
 from screeninfo import get_monitors
 from ultralytics import YOLO
@@ -21,34 +24,48 @@ model103 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download
 
 ### Begin of SAM2 Initialization ###
 
-from sam2.build_sam import build_sam2
-from sam2.sam2_image_predictor import SAM2ImagePredictor
+# from sam2.build_sam import build_sam2
+# from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-current_user = os.getenv("USER")
-sam2_checkpoint = f"/home/{current_user}/Desktop/sam2/checkpoints/sam2.1_hiera_large.pt"
-model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
+# current_user = os.getenv("USER")
+# sam2_checkpoint = f"/home/{current_user}/Desktop/sam2/checkpoints/sam2.1_hiera_tiny.pt"
+# model_cfg = "configs/sam2.1/sam2.1_hiera_t.yaml"
 
 # select the device for computation
-if torch.cuda.is_available():
-    device = torch.device("cuda")
-else:
-    device = torch.device("cpu")
-print(f"using device: {device}")
+# if torch.cuda.is_available():
+#     device = torch.device("cuda")
+# else:
+#     device = torch.device("cpu")
+# print(f"using device: {device}")
 
-if device.type == "cuda":
-    # use bfloat16 for the entire notebook
-    torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
-    # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
-    if torch.cuda.get_device_properties(0).major >= 8:
-        torch.backends.cuda.matmul.allow_tf32 = True
-        torch.backends.cudnn.allow_tf32 = True
+# if device.type == "cuda":
+#     # use bfloat16 for the entire notebook
+#     torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
+#     # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
+#     if torch.cuda.get_device_properties(0).major >= 8:
+#         torch.backends.cuda.matmul.allow_tf32 = True
+#         torch.backends.cudnn.allow_tf32 = True
 
-sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=device)
-predictor = SAM2ImagePredictor(sam2_model)
+# sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=device)
+# predictor = SAM2ImagePredictor(sam2_model)
 
 ### End of SAM2 Initialization ###
 
 
+### Begin of MobileSAM ###
+from mobile_sam import sam_model_registry, SamPredictor
+current_user = os.getenv("USER")
+sam_checkpoint = f"/home/{current_user}/Desktop/MobileSAM/weights/mobile_sam.pt"
+
+model_type = "vit_t"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+sam.to(device=device)
+sam.eval()
+
+predictor = SamPredictor(sam)
+### End of MobileSAM ###
 
 # Queue to share frames between threads (size=1 ensures old frames are dropped)
 frame102_queue = queue.Queue(maxsize=1)
@@ -106,8 +123,11 @@ def display_annoted_frame102():
             # Run YOLOv8 on the frame102 (only person detection)
             results102 = model102(frame, conf=0.55, classes=[0])
             
-            # for sam2
-            # predictor.set_image(frame)      
+            # for sam2 _ sam2 is too huge for real time processing
+            # switching to mobile sam
+            resized_frame = cv2.resize(frame, (0, 0), fx=0.1, fy=0.1)
+            # predictor.set_image(resized_frame)      
+            
                                          
             for result in results102:
                 for box in result.boxes:
@@ -121,9 +141,9 @@ def display_annoted_frame102():
                 
                 
             # Show results
-            annotated_frame102 = frame
+            annotated_frame102 = resized_frame
             
-        time.sleep(0.006)
+        time.sleep(0.010)
     
       
 def display_frame103():
@@ -149,7 +169,7 @@ def display_annoted_frame103():
             results103 = model103(frame, conf=0.55, classes=[0])
             # Show results
             annotated_frame103 = results103[0].plot()
-        time.sleep(0.006)
+        time.sleep(0.010)
     
    
 # Create and Start Threads

@@ -73,3 +73,10 @@ A quick example
 ```
 python3 posenet_image_demo.py --model 101 --image_dir ./images --output_dir ./output
 ```
+
+
+- MobileSAMv2
+https://github.com/ChaoningZhang/MobileSAM
+git clone https://github.com/ChaoningZhang/MobileSAM.git
+cd MobileSAM
+pip install gradio
