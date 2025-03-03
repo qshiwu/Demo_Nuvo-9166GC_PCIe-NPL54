@@ -13,9 +13,10 @@ from ultralytics import YOLO
 ### Initialize YOLOv8n ###
 
 # Download YOLOv8n (nano version)
-model102 = YOLO("yolov8n.pt")  # This will automatically download the model103 if not found locally
-model103 = YOLO("yolov8n.pt")  # This will automatically download the model103 if not found locally
+model102 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download the model103 if not found locally
+model103 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download the model103 if not found locally
 
+# print(model102.model) 
 
 ### Initialize sam2 ###
 
@@ -106,6 +107,14 @@ def display_annoted_frame102():
             frame = frame102_queue.get()            
             # Run YOLOv8 on the frame102 (only person detection)
             results102 = model102(frame102, conf=0.55, classes=[0])
+            for result in results102:
+                for box in result.boxes:
+                    print(box)
+                    x_min, y_min, x_max, y_max = box.xyxy[0]  # Bounding box in (x_min, y_min, x_max, y_max) format
+                    conf = box.conf[0].item()  # Confidence score                    
+                    print(f"Class: {cls}, Confidence: {conf:.2f}, BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
+                
+                
             # Show results
             annotated_frame102 = results102[0].plot()
         time.sleep(0.006)
