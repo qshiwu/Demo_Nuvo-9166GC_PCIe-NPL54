@@ -104,19 +104,22 @@ def display_annoted_frame102():
     global running, frame102_queue, annotated_frame102
     while running:     
         if not frame102_queue.empty():            
-            frame = frame102_queue.get()            
+            frame = frame102_queue.get()       
+                 
             # Run YOLOv8 on the frame102 (only person detection)
             results102 = model102(frame102, conf=0.55, classes=[0])
+                        
             for result in results102:
                 for box in result.boxes:
                     print(box)
                     x_min, y_min, x_max, y_max = box.xyxy[0]  # Bounding box in (x_min, y_min, x_max, y_max) format
                     conf = box.conf[0].item()  # Confidence score                    
-                    print(f"Class: {cls}, Confidence: {conf:.2f}, BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
+                    print(f"Confidence: {conf:.2f}, BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
                 
                 
             # Show results
-            annotated_frame102 = results102[0].plot()
+            annotated_frame102 = frame
+            
         time.sleep(0.006)
     
       
