@@ -18,7 +18,8 @@ model103 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download
 
 # print(model102.model) 
 
-### Initialize sam2 ###
+
+### Begin of SAM2 Initialization ###
 
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
@@ -26,12 +27,6 @@ from sam2.sam2_image_predictor import SAM2ImagePredictor
 current_user = os.getenv("USER")
 sam2_checkpoint = f"/home/{current_user}/Desktop/sam2/checkpoints/sam2.1_hiera_large.pt"
 model_cfg = "configs/sam2.1/sam2.1_hiera_l.yaml"
-
-
-
-
-
-###########
 
 # select the device for computation
 if torch.cuda.is_available():
@@ -50,6 +45,8 @@ if device.type == "cuda":
 
 sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=device)
 predictor = SAM2ImagePredictor(sam2_model)
+
+### End of SAM2 Initialization ###
 
 
 
@@ -104,14 +101,20 @@ def display_annoted_frame102():
     global running, frame102_queue, annotated_frame102
     while running:     
         if not frame102_queue.empty():            
-            frame = frame102_queue.get()       
-                 
+            frame = frame102_queue.get() 
+            
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame102, conf=0.55, classes=[0])
-                        
+            results102 = model102(frame, conf=0.55, classes=[0])
+            
+            # for sam2
+            # predictor.set_image(frame)      
+                                         
             for result in results102:
                 for box in result.boxes:
-                    print(box)
+                    # testing with sam2
+                    
+                    
+                    # print(box)
                     x_min, y_min, x_max, y_max = box.xyxy[0]  # Bounding box in (x_min, y_min, x_max, y_max) format
                     conf = box.conf[0].item()  # Confidence score                    
                     print(f"Confidence: {conf:.2f}, BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
@@ -143,7 +146,7 @@ def display_annoted_frame103():
         if not frame103_queue.empty():            
             frame = frame103_queue.get()            
             # Run YOLOv8 on the frame103 (only person detection)
-            results103 = model103(frame103, conf=0.55, classes=[0])
+            results103 = model103(frame, conf=0.55, classes=[0])
             # Show results
             annotated_frame103 = results103[0].plot()
         time.sleep(0.006)
