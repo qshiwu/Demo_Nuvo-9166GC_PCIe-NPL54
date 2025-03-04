@@ -100,11 +100,11 @@ while True:
     # cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
     cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 1)
     
-    cv2.putText(canvas, 'Live', (25, 55), 2, 1.5, (0, 0, 0), 3)
-    cv2.putText(canvas, 'Live', (25, 55), 2, 1.5, (255, 255, 255), 2)
+    cv2.putText(canvas, 'Live', (25, 75), 2, 1.5, (0, 0, 0), 3)
+    cv2.putText(canvas, 'Live', (25, 75), 2, 1.5, (255, 255, 255), 2)
 
-    cv2.putText(canvas, 'YOLOv8n', (monitor.width//2 + 25, 55), 2, 1.5, (0, 0, 0), 3)
-    cv2.putText(canvas, 'YOLOv8n', (monitor.width//2 + 25, 55), 2, 1.5, (255, 255, 255), 2)
+    cv2.putText(canvas, 'YOLOv8n', (monitor.width//2 + 25, 75), 2, 1.5, (0, 0, 0), 3)
+    cv2.putText(canvas, 'YOLOv8n', (monitor.width//2 + 25, 75), 2, 1.5, (255, 255, 255), 2)
     
     cv2.imshow(WIN_NAME, canvas)    
     

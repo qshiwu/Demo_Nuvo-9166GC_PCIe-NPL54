@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Demo
+Comment=Demo
+Exec=/home/dvt/Desktop/Demo_Nuvo-9166GC_PCIe-NPL54/run.sh
+Icon=/home/dvt/Desktop/Demo_Nuvo-9166GC_PCIe-NPL54/Demo.png
+Terminal=true
+Type=Application
+StartupNotify=true
+NoDisplay=false
