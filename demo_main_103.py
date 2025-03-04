@@ -110,7 +110,6 @@ while True:
 
 
 # Wait for Threads to Finish
-# thread_display_canvas.join()
 thread_display_frame103.join()
 thread_display_annoted_frame103.join()
 

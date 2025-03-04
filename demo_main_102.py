@@ -96,19 +96,21 @@ def display_annoted_frame102():
     global running, frame102_queue, annotated_frame102
     while running:     
         if frame102_queue.empty():            
-            time.sleep(0.010)
+            time.sleep(0.003)
         if not frame102_queue.empty():            
             frame = frame102_queue.get() 
             
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame, conf=0.50, classes=[0], verbose=False)
+            results102 = model102(frame, conf=0.30, classes=[0], verbose=False)
             
-            # for sam2 _ sam2 is too huge for real time processing
+            # sam2 is too huge for real time processing
             # switching to mobile sam
-            # ratio = 0.3
-            # resized_frame = cv2.cuda.resize(frame, (0, 0), fx=ratio, fy=ratio)
-            # predictor.set_image(resized_frame)
-            predictor.set_image(frame)
+
+            ratio = 0.4
+            resized_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
+            predictor.set_image(resized_frame)
+            
+            # predictor.set_image(frame)
             blended = frame
                                          
             for result in results102:
@@ -118,7 +120,10 @@ def display_annoted_frame102():
                     x_min, y_min, x_max, y_max = box_yolo.xyxy[0]  # Bounding box in (x_min, y_min, x_max, y_max) format
                     # print(f"BBox: [{x_min:.0f}, {y_min:.0f}, {x_max:.0f}, {y_max:.0f}]")
                     
-                    input_box = np.array([x_min.cpu().item(), y_min.cpu().item(), x_max.cpu().item(), y_max.cpu().item()])
+                    # input_box = np.array([x_min.cpu().item(), y_min.cpu().item(), x_max.cpu().item(), y_max.cpu().item()])
+                    input_box = np.array([x_min.cpu()*ratio//1, y_min.cpu()*ratio//1, x_max.cpu()*ratio//1, y_max.cpu()*ratio//1])
+                    
+                    # print(x_min.cpu().item(), x_min.cpu())
                     
                     masks, _, _ = predictor.predict(
                         point_coords=None,
@@ -134,12 +139,16 @@ def display_annoted_frame102():
 
                     # Ensure the mask and frame have the same size
                     mask_resized = cv2.resize(mask, (frame.shape[1], frame.shape[0]))
+                    mask_resized = cv2.blur(mask_resized, (7,7))
 
                     # Convert the mask to 3 channels for blending (if it's single channel)
                     mask_colored = cv2.cvtColor(mask_resized, cv2.COLOR_GRAY2BGR)
+                    mask_colored[:, :, 0] = 0  # Blue channel
+                    mask_colored[:, :, 1] = mask_resized  # Green channel
+                    mask_colored[:, :, 2] = 0  # Red channel
 
                     alpha = 1
-                    beta = 0.6
+                    beta = 0.5
                     blended = cv2.addWeighted(blended, alpha , mask_colored, beta , 0)
 
 
