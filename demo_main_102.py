@@ -111,7 +111,10 @@ def display_annoted_frame102():
             predictor.set_image(resized_frame)
             
             # predictor.set_image(frame)
+            
             blended = frame
+            merged_mask = np.zeros_like(resized_frame)
+
                                          
             for result in results102:
                 for box_yolo in result.boxes:                    
@@ -134,6 +137,8 @@ def display_annoted_frame102():
 
 
                     mask = masks[0]
+                    # print(np.count_nonzero(mask == 1))
+
                     # Convert mask to uint8 (0 or 255) if it's a binary mask
                     mask = (mask > 0.5).astype(np.uint8) * 255  # Threshold if necessary
 
