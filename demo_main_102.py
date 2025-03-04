@@ -199,8 +199,8 @@ while True:
     cv2.putText(canvas, 'Live', (25, 55), 2, 1.5, (0, 0, 0), 3)
     cv2.putText(canvas, 'Live', (25, 55), 2, 1.5, (255, 255, 255), 2)
 
-    cv2.putText(canvas, 'YOLOv8n', (monitor.width//2 + 25, 55), 2, 1.5, (0, 0, 0), 3)
-    cv2.putText(canvas, 'YOLOv8n', (monitor.width//2 + 25, 55), 2, 1.5, (255, 255, 255), 2)
+    cv2.putText(canvas, 'YOLOv8n + MobileSAM', (monitor.width//2 + 25, 55), 2, 1.5, (0, 0, 0), 3)
+    cv2.putText(canvas, 'YOLOv8n + MobileSAM', (monitor.width//2 + 25, 55), 2, 1.5, (255, 255, 255), 2)
 
     cv2.imshow(WIN_NAME, canvas)    
     
