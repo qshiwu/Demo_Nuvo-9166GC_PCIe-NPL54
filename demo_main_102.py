@@ -85,6 +85,8 @@ def display_frame102():
         # Add frame to queue (drop old frames if needed)
         if not frame102_queue.full():
             frame102_queue.put(frame102)
+
+        time.sleep(0.002)
       
     
 def display_annoted_frame102():
@@ -96,26 +98,27 @@ def display_annoted_frame102():
     global running, frame102_queue, annotated_frame102
     while running:     
         if frame102_queue.empty():            
-            time.sleep(0.003)
+            time.sleep(0.002)
         if not frame102_queue.empty():            
             frame = frame102_queue.get() 
             
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame, conf=0.30, classes=[0], verbose=False)
+            results102 = model102(frame, conf=0.45, classes=[0], verbose=False)
             
             # sam2 is too huge for real time processing
             # switching to mobile sam
 
-            ratio = 0.4
+            ratio = 0.3
             resized_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
             predictor.set_image(resized_frame)
             
             # predictor.set_image(frame)
             
             blended = frame
-            merged_mask = np.zeros_like(resized_frame)
-
+            # merged_mask = np.zeros_like(resized_frame)a
+            merged_mask = np.zeros((resized_frame.shape[0], resized_frame.shape[1]))
                                          
+
             for result in results102:
                 for box_yolo in result.boxes:                    
                                         
@@ -137,32 +140,32 @@ def display_annoted_frame102():
 
 
                     mask = masks[0]
-                    # print(np.count_nonzero(mask == 1))
-
-                    # Convert mask to uint8 (0 or 255) if it's a binary mask
-                    mask = (mask > 0.5).astype(np.uint8) * 255  # Threshold if necessary
-
-                    # Ensure the mask and frame have the same size
-                    mask_resized = cv2.resize(mask, (frame.shape[1], frame.shape[0]))
-                    mask_resized = cv2.blur(mask_resized, (7,7))
-
-                    # Convert the mask to 3 channels for blending (if it's single channel)
-                    mask_colored = cv2.cvtColor(mask_resized, cv2.COLOR_GRAY2BGR)
-                    mask_colored[:, :, 0] = 0  # Blue channel
-                    mask_colored[:, :, 1] = mask_resized  # Green channel
-                    mask_colored[:, :, 2] = 0  # Red channel
-
-                    alpha = 1
-                    beta = 0.5
-                    blended = cv2.addWeighted(blended, alpha , mask_colored, beta , 0)
-
+                    merged_mask = np.logical_or(merged_mask, mask)
 
                     #color = np.array([30/255, 144/255, 255/255, 0.6])
                     #h, w = masks[0].shape[-2:]
                     #mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
 
+            # print(np.count_nonzero(merged_mask == 1))
                 
-                
+            # Convert mask to uint8 (0 or 255) if it's a binary mask
+            merged_mask = (merged_mask > 0.5).astype(np.uint8) * 255  # Threshold if necessary
+
+            # Ensure the mask and frame have the same size
+            mask_resized = cv2.resize(merged_mask, (frame.shape[1], frame.shape[0]))
+            mask_resized = cv2.blur(mask_resized, (3,3))
+
+            # Convert the mask to 3 channels for blending (if it's single channel)
+            mask_colored = cv2.cvtColor(mask_resized, cv2.COLOR_GRAY2BGR)
+            mask_colored[:, :, 0] = 0  # Blue channel
+            mask_colored[:, :, 1] = mask_resized  # Green channel
+            mask_colored[:, :, 2] = 0  # Red channel
+
+            alpha = 1
+            beta = 0.5
+            blended = cv2.addWeighted(blended, alpha , mask_colored, beta , 0)
+            
+
             # Show results
             annotated_frame102 = blended
             # annotated_frame102 = results102
