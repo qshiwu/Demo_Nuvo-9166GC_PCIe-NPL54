@@ -108,7 +108,7 @@ def display_annoted_frame102():
             # sam2 is too huge for real time processing
             # switching to mobile sam
 
-            ratio = 0.3
+            ratio = 0.4
             resized_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
             predictor.set_image(resized_frame)
             
