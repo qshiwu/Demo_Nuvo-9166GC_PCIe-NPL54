@@ -212,7 +212,9 @@ def display_annoted_frame103():
             # Show results
             annotated_frame103 = results103[0].plot()
         time.sleep(0.010)
-    
+ 
+
+
    
 # Create and Start Threads
 # thread_display_canvas = threading.Thread(target=display_canvas)
