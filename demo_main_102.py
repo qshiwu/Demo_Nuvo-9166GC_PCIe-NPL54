@@ -14,43 +14,12 @@ from screeninfo import get_monitors
 from ultralytics import YOLO
 
 ### Initialize YOLOv8n ###
+
 WIN_NAME = "/dev/video102 __ Live | YOLOv8n + MobileSAM" 
 padding_h = 20
+
 # Download YOLOv8n (nano version)
-model102 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download the model103 if not found locally
-# model103 = YOLO("yolov8n.pt", verbose=False)  # This will automatically download the model103 if not found locally
-
-# print(model102.model) 
-
-
-### Begin of SAM2 Initialization ###
-
-# from sam2.build_sam import build_sam2
-# from sam2.sam2_image_predictor import SAM2ImagePredictor
-
-# current_user = os.getenv("USER")
-# sam2_checkpoint = f"/home/{current_user}/Desktop/sam2/checkpoints/sam2.1_hiera_tiny.pt"
-# model_cfg = "configs/sam2.1/sam2.1_hiera_t.yaml"
-
-# select the device for computation
-# if torch.cuda.is_available():
-#     device = torch.device("cuda")
-# else:
-#     device = torch.device("cpu")
-# print(f"using device: {device}")
-
-# if device.type == "cuda":
-#     # use bfloat16 for the entire notebook
-#     torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
-#     # turn on tfloat32 for Ampere GPUs (https://pytorch.org/docs/stable/notes/cuda.html#tensorfloat-32-tf32-on-ampere-devices)
-#     if torch.cuda.get_device_properties(0).major >= 8:
-#         torch.backends.cuda.matmul.allow_tf32 = True
-#         torch.backends.cudnn.allow_tf32 = True
-
-# sam2_model = build_sam2(model_cfg, sam2_checkpoint, device=device)
-# predictor = SAM2ImagePredictor(sam2_model)
-
-### End of SAM2 Initialization ###
+model102 = YOLO("yolov8n.pt")  
 
 
 ### Begin of MobileSAM ###
@@ -72,25 +41,22 @@ predictor = SamPredictor(sam)
 
 ### End of MobileSAM ###
 
+
 # Queue to share frames between threads (size=1 ensures old frames are dropped)
 frame102_queue = queue.Queue(maxsize=1)
-frame103_queue = queue.Queue(maxsize=1)
 
 cap102 = cv2.VideoCapture('/dev/video102')
-cap103 = cv2.VideoCapture('/dev/video103')
 
 #cv2.namedWindow("WIN", cv2.WND_PROP_FULLSCREEN)
 cv2.namedWindow(WIN_NAME, cv2.WINDOW_NORMAL)
 #cv2.setWindowProperty("WIN", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 
-if not cap102.isOpened() or not cap103.isOpened():
-    print("Neither /dev/video102 nor /dev/video103 is not streaming")
+if not cap102.isOpened() :
+    print("/dev/video102 is not streaming")
     exit()
 else:
     # Get 1st Frame
-    ret103, frame103 = cap103.read()
-    annotated_frame103 = frame103
     ret102, frame102 = cap102.read()
     annotated_frame102 = frame102
     
@@ -135,7 +101,7 @@ def display_annoted_frame102():
             frame = frame102_queue.get() 
             
             # Run YOLOv8 on the frame102 (only person detection)
-            results102 = model102(frame, conf=0.40, classes=[0], verbose=False)
+            results102 = model102(frame, conf=0.50, classes=[0], verbose=False)
             
             # for sam2 _ sam2 is too huge for real time processing
             # switching to mobile sam
@@ -173,7 +139,7 @@ def display_annoted_frame102():
                     mask_colored = cv2.cvtColor(mask_resized, cv2.COLOR_GRAY2BGR)
 
                     alpha = 1
-                    beta = 0.5
+                    beta = 0.6
                     blended = cv2.addWeighted(blended, alpha , mask_colored, beta , 0)
 
 
@@ -189,37 +155,6 @@ def display_annoted_frame102():
             
     
       
-def display_frame103():
-    global frame103, running, frame103_queue
-    while running and cap103.isOpened():        
-        ret103, frame103 = cap103.read()
-        # if frame is read correctly ret is True
-        if not ret103:            
-            print("Can't receive frame103 . Exiting ...")
-            break
-        
-        # Add frame to queue (drop old frames if needed)
-        if not frame103_queue.full():
-            frame103_queue.put(frame103)
-
-
-def display_annoted_frame103():
-    global running, frame103_queue, annotated_frame103
-    while running:     
-        if not frame103_queue.empty():            
-            frame = frame103_queue.get()            
-            # Run YOLOv8 on the frame103 (only person detection)
-            results103 = model103(frame, conf=0.45, classes=[0], verbose=False)
-            # Show results
-            annotated_frame103 = results103[0].plot()
-        time.sleep(0.010)
- 
-
-
-   
-# Create and Start Threads
-# thread_display_canvas = threading.Thread(target=display_canvas)
-# thread_display_canvas.start()
 
 thread_display_frame102 = threading.Thread(target=display_frame102)
 thread_display_frame102.start()
@@ -228,16 +163,11 @@ thread_display_annoted_frame102 = threading.Thread(target=display_annoted_frame1
 thread_display_annoted_frame102.start()
 
 
-#thread_display_frame103 = threading.Thread(target=display_frame103)
-#thread_display_frame103.start()
-
-#thread_display_annoted_frame103 = threading.Thread(target=display_annoted_frame103)
-#thread_display_annoted_frame103.start()
-
 
 # Display the resulting frame    
 # —————————————————————————————
-#  frame103   | frame103 w/ AI    
+#  frame102   | frame102 w/ AI
+
 # Display every video stream on canvas and listen to keyboard event
 
 while True:
@@ -246,10 +176,6 @@ while True:
     canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
     canvas[0:monitor.height//2, monitor.width//2:monitor.width] = cv2.resize(annotated_frame102, (monitor.width//2, monitor.height//2))
     
-    # frame 103
-#    canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame103, (monitor.width//2, monitor.height//2))
- #   canvas[monitor.height//2:monitor.height, monitor.width//2:monitor.width] = cv2.resize(annotated_frame103, (monitor.width//2, monitor.height//2))
-
     # cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
     cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 1)
     cv2.imshow(WIN_NAME, canvas)    
@@ -265,11 +191,8 @@ while True:
 # Wait for Threads to Finish
 # thread_display_canvas.join()
 thread_display_frame102.join()
-thread_display_frame103.join()
 thread_display_annoted_frame102.join()
-thread_display_annoted_frame103.join()
 
 # When everything done, release the cap102 and cap103
 cap102.release()
-cap103.release()
 cv2.destroyAllWindows()
