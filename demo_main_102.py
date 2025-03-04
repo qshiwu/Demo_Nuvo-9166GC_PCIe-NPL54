@@ -16,7 +16,7 @@ from ultralytics import YOLO
 ### Initialize YOLOv8n ###
 
 WIN_NAME = "/dev/video102 __ Live | YOLOv8n + MobileSAM" 
-padding_h = 20
+padding_h = 40
 
 # Download YOLOv8n (nano version)
 model102 = YOLO("yolov8n.pt")  
@@ -63,9 +63,11 @@ else:
     # Get the primary monitor's resolution    
     monitor = get_monitors()[0]  # Assumes the first monitor is the primary one
     print(f"Desktop resolution: {monitor.width}x{monitor.height}")
-    cv2.resizeWindow(WIN_NAME,monitor.width,monitor.height//2-padding_h)   
-    # A full size canvas
-    canvas = np.zeros((monitor.height//2, monitor.width , 3), dtype=np.uint8)
+    # cv2.resizeWindow(WIN_NAME,monitor.width,monitor.height//2-padding_h)   
+    cv2.resizeWindow(WIN_NAME,monitor.width//2 - padding_h ,monitor.height)   
+    cv2.moveWindow(WIN_NAME,0,0)
+    canvas = np.zeros((monitor.height, monitor.width//2 , 3), dtype=np.uint8)
+    # canvas = np.zeros((monitor.height//2, monitor.width , 3), dtype=np.uint8)
     # canvas = np.zeros((monitor.height, monitor.width , 3), dtype=np.uint8)
     canvas[:, :] = [255, 0, 0]    
 
@@ -190,17 +192,17 @@ thread_display_annoted_frame102.start()
 while True:
     
     # frame 102
-    canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
-    canvas[0:monitor.height//2, monitor.width//2:monitor.width] = cv2.resize(annotated_frame102, (monitor.width//2, monitor.height//2))
+    canvas[0:monitor.height//2, 0:monitor.width//2] = cv2.resize(annotated_frame102, (monitor.width//2, monitor.height//2))
+    canvas[monitor.height//2:monitor.height, 0:monitor.width//2] = cv2.resize(frame102, (monitor.width//2, monitor.height//2))
     
-    # cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
-    cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 1)
+    cv2.line(canvas, (0, monitor.height//2), (monitor.width, monitor.height//2), (200, 200, 200), 1)
+    # cv2.line(canvas, (monitor.width//2, 0), (monitor.width//2, monitor.height), (200, 200, 200), 1)
 
-    cv2.putText(canvas, 'Live', (25, 75), 2, 1.5, (0, 0, 0), 3)
-    cv2.putText(canvas, 'Live', (25, 75), 2, 1.5, (255, 255, 255), 2)
+    cv2.putText(canvas, 'YOLOv8n + MobileSAM', (25, 75), 2, 1.5, (0, 0, 0), 3)
+    cv2.putText(canvas, 'YOLOv8n + MobileSAM', (25, 75), 2, 1.5, (255, 255, 255), 2)
 
-    cv2.putText(canvas, 'YOLOv8n + MobileSAM', (monitor.width//2 + 25, 75), 2, 1.5, (0, 0, 0), 3)
-    cv2.putText(canvas, 'YOLOv8n + MobileSAM', (monitor.width//2 + 25, 75), 2, 1.5, (255, 255, 255), 2)
+    cv2.putText(canvas, 'Live', (25, monitor.height//2 + 75), 2, 1.5, (0, 0, 0), 3)
+    cv2.putText(canvas, 'Live', (25, monitor.height//2 + 75), 2, 1.5, (255, 255, 255), 2)
 
     cv2.imshow(WIN_NAME, canvas)    
     
