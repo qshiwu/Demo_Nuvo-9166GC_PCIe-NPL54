@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Video_Loop
+Comment=Play_Videos
+Exec=/usr/bin/vlc --fullscreen --loop /home/dvt/Desktop/videos/Jetson_1.mp4 /home/dvt/Desktop/videos/Jetson_2.mp4
+Icon=/usr/share/icons/hicolor/256x256/apps/vlc.png
+Terminal=false
+Type=Application
+Categories=AudioVideo;Player;Video;
